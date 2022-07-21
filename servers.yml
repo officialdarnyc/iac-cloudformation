@@ -18,7 +18,7 @@ Resources:
             Action:
               - 'sts:AssumeRole'
       ManagedPolicyArns:
-        - arn:aws:iam::270409986098:policy/AccessS3BucketPolicy
+        - arn:aws:iam::838623911274:policy/InstanceAccessS3BucketPolicy
   ServerInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties: 
@@ -68,15 +68,16 @@ Resources:
       UserData:
         Fn::Base64: !Sub |
           #!/bin/bash
-          sudo apt-get update -y
-          sudo apt-get install apache2 -y
-          sudo systemctl start apache2.service
+          sudo yum update -y
+          sudo yum install httpd -y
+          sudo systemctl start httpd
           cd /var/www/html
-          echo "It works! Udagram, Udacity!" > index.html        
+          sudo chown -R $USER:$USER /var/www
+          echo "It works! Udagram, Udacity" > index.html        
       # ToDo: AMI ID of Ubuntu Linux machine. Too get one, try creating a VM from the web console. 
       ImageId: ami-0cff7528ff583bf9a
       # ToDo: Change the key-pair name, as applicable to you. 
-    # KeyName: dan_keypair
+    #  KeyName: adminInstanceKey
       IamInstanceProfile: !Ref ServerInstanceProfile
       SecurityGroups:
       - Ref: WebServerSecGroup
@@ -89,7 +90,7 @@ Resources:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       VPCZoneIdentifier:
-      - Fn::ImportValue: 
+      - Fn::ImportValue:
           !Sub "${EnvName}-PRIV-NETS"
       LaunchConfigurationName:
         Ref: WebAppLaunchConfig
